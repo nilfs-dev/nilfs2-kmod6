@@ -181,6 +181,7 @@ void nilfs_destroy_inode(struct inode *inode)
 static void nilfs_clear_inode(struct inode *inode)
 {
 	struct nilfs_inode_info *ii = NILFS_I(inode);
+	struct nilfs_mdt_info *mdi = NILFS_MDT(inode);
 
 	/*
 	 * Free resources allocated in nilfs_read_inode(), here.
@@ -188,6 +189,9 @@ static void nilfs_clear_inode(struct inode *inode)
 	BUG_ON(!list_empty(&ii->i_dirty));
 	brelse(ii->i_bh);
 	ii->i_bh = NULL;
+
+	if (mdi && mdi->mi_palloc_cache)
+		nilfs_palloc_destroy_cache(inode);
 
 	if (test_bit(NILFS_I_BMAP, &ii->i_state))
 		nilfs_bmap_clear(ii->i_bmap);
