@@ -37,6 +37,7 @@
 struct nilfs_iget_args {
 	u64 ino;
 	__u64 cno;
+	struct nilfs_root *root;
 	int for_gc;
 };
 
@@ -267,6 +268,7 @@ struct inode *nilfs_new_inode(struct inode *dir, int mode)
 	struct nilfs_sb_info *sbi = NILFS_SB(sb);
 	struct inode *inode;
 	struct nilfs_inode_info *ii;
+	struct nilfs_root *root;
 	int err = -ENOMEM;
 	ino_t ino;
 
@@ -277,8 +279,10 @@ struct inode *nilfs_new_inode(struct inode *dir, int mode)
 	mapping_set_gfp_mask(inode->i_mapping,
 			     mapping_gfp_mask(inode->i_mapping) & ~__GFP_FS);
 
+	root = NILFS_I(dir)->i_root;
 	ii = NILFS_I(inode);
 	ii->i_state = 1 << NILFS_I_NEW;
+	ii->i_root = root;
 
 	err = nilfs_ifile_create_inode(sbi->s_ifile, &ino, &ii->i_bh);
 	if (unlikely(err))
@@ -468,7 +472,7 @@ static int nilfs_iget_test(struct inode *inode, void *opaque)
 	struct nilfs_iget_args *args = opaque;
 	struct nilfs_inode_info *ii;
 
-	if (args->ino != inode->i_ino)
+	if (args->ino != inode->i_ino || args->root != NILFS_I(inode)->i_root)
 		return 0;
 
 	ii = NILFS_I(inode);
@@ -486,13 +490,21 @@ static int nilfs_iget_set(struct inode *inode, void *opaque)
 	if (args->for_gc) {
 		NILFS_I(inode)->i_state = 1 << NILFS_I_GCINODE;
 		NILFS_I(inode)->i_cno = args->cno;
+		NILFS_I(inode)->i_root = NULL;
+	} else {
+		if (args->root && args->ino == NILFS_ROOT_INO)
+			nilfs_get_root(args->root);
+		NILFS_I(inode)->i_root = args->root;
 	}
 	return 0;
 }
 
-struct inode *nilfs_iget(struct super_block *sb, unsigned long ino)
+struct inode *nilfs_iget(struct super_block *sb, struct nilfs_root *root,
+			 unsigned long ino)
 {
-	struct nilfs_iget_args args = { .ino = ino, .cno = 0, .for_gc = 0 };
+	struct nilfs_iget_args args = {
+		.ino = ino, .root = root, .cno = 0, .for_gc = 0
+	};
 	struct inode *inode;
 	int err;
 
@@ -514,7 +526,9 @@ struct inode *nilfs_iget(struct super_block *sb, unsigned long ino)
 struct inode *nilfs_iget_for_gc(struct super_block *sb, unsigned long ino,
 				__u64 cno)
 {
-	struct nilfs_iget_args args = { .ino = ino, .cno = cno, .for_gc = 1 };
+	struct nilfs_iget_args args = {
+		.ino = ino, .root = NULL, .cno = cno, .for_gc = 1
+	};
 	struct inode *inode;
 	int err;
 
@@ -657,7 +671,7 @@ void nilfs_delete_inode(struct inode *inode)
 	struct super_block *sb = inode->i_sb;
 	struct nilfs_inode_info *ii = NILFS_I(inode);
 
-	if (unlikely(is_bad_inode(inode))) {
+	if (!ii->i_root || unlikely(is_bad_inode(inode))) {
 		if (inode->i_data.nrpages)
 			truncate_inode_pages(&inode->i_data, 0);
 		clear_inode(inode);
