@@ -57,6 +57,21 @@ inode_init_owner(struct inode *inode, const struct inode *dir, mode_t mode)
 }
 #endif
 
+enum {
+	/*
+	 * 64 bit checkpoint number, 64 bit inode number,
+	 * 32 bit generation number.
+	 */
+	FILEID_NILFS_WITHOUT_PARENT = 0x61,
+
+	/*
+	 * 64 bit checkpoint number, 64 bit inode number,
+	 * 32 bit generation number, 32 bit parent generation.
+	 * 64 bit parent inode number.
+	 */
+	FILEID_NILFS_WITH_PARENT = 0x62,
+};
+
 /*
  * The following patches are left unapplied during backporting later
  * patches:
