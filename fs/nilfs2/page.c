@@ -527,6 +527,18 @@ void nilfs_mapping_init_once(struct address_space *mapping)
 	INIT_LIST_HEAD(&mapping->i_mmap_nonlinear);
 }
 
+void nilfs_mapping_init(struct address_space *mapping,
+			struct backing_dev_info *bdi,
+			const struct address_space_operations *aops)
+{
+	mapping->host = NULL;
+	mapping->flags = 0;
+	mapping_set_gfp_mask(mapping, GFP_NOFS);
+	mapping->assoc_mapping = NULL;
+	mapping->backing_dev_info = bdi;
+	mapping->a_ops = aops;
+}
+
 /*
  * NILFS2 needs clear_page_dirty() in the following two cases:
  *

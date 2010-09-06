@@ -47,12 +47,7 @@ static const struct address_space_operations def_btnode_aops = {
 void nilfs_btnode_cache_init(struct address_space *btnc,
 			     struct backing_dev_info *bdi)
 {
-	btnc->host = NULL;  /* can safely set to host inode ? */
-	btnc->flags = 0;
-	mapping_set_gfp_mask(btnc, GFP_NOFS);
-	btnc->assoc_mapping = NULL;
-	btnc->backing_dev_info = bdi;
-	btnc->a_ops = &def_btnode_aops;
+	nilfs_mapping_init(btnc, bdi, &def_btnode_aops);
 }
 
 void nilfs_btnode_cache_clear(struct address_space *btnc)

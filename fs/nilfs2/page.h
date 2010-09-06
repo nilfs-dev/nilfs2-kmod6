@@ -60,6 +60,9 @@ int nilfs_copy_dirty_pages(struct address_space *, struct address_space *);
 void nilfs_copy_back_pages(struct address_space *, struct address_space *);
 void nilfs_clear_dirty_pages(struct address_space *);
 void nilfs_mapping_init_once(struct address_space *mapping);
+void nilfs_mapping_init(struct address_space *mapping,
+			struct backing_dev_info *bdi,
+			const struct address_space_operations *aops);
 unsigned nilfs_page_count_clean_buffers(struct page *, unsigned, unsigned);
 
 #define NILFS_PAGE_BUG(page, m, a...) \
