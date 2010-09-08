@@ -379,7 +379,7 @@ static void nilfs_put_super(struct super_block *sb)
 		up_write(&nilfs->ns_sem);
 	}
 
-	put_nilfs(sbi->s_nilfs);
+	destroy_nilfs(nilfs);
 	sbi->s_super = NULL;
 	sb->s_fs_info = NULL;
 	kfree(sbi);
@@ -863,15 +863,14 @@ static int nilfs_try_to_shrink_tree(struct dentry *root_dentry)
  * @sb: super_block
  * @data: mount options
  * @silent: silent mode flag
- * @nilfs: the_nilfs struct
  *
  * This function is called exclusively by nilfs->ns_mount_mutex.
  * So, the recovery process is protected from other simultaneous mounts.
  */
 static int
-nilfs_fill_super(struct super_block *sb, void *data, int silent,
-		 struct the_nilfs *nilfs)
+nilfs_fill_super(struct super_block *sb, void *data, int silent)
 {
+	struct the_nilfs *nilfs;
 	struct nilfs_sb_info *sbi;
 	struct nilfs_root *fsroot;
 	__u64 cno;
@@ -882,14 +881,18 @@ nilfs_fill_super(struct super_block *sb, void *data, int silent,
 		return -ENOMEM;
 
 	sb->s_fs_info = sbi;
-
-	get_nilfs(nilfs);
-	sbi->s_nilfs = nilfs;
 	sbi->s_super = sb;
+
+	nilfs = alloc_nilfs(sb->s_bdev);
+	if (!nilfs) {
+		err = -ENOMEM;
+		goto failed_sbi;
+	}
+	sbi->s_nilfs = nilfs;
 
 	err = init_nilfs(nilfs, sbi, (char *)data);
 	if (err)
-		goto failed_sbi;
+		goto failed_nilfs;
 
 	spin_lock_init(&sbi->s_inode_lock);
 	INIT_LIST_HEAD(&sbi->s_dirty_files);
@@ -912,14 +915,14 @@ nilfs_fill_super(struct super_block *sb, void *data, int silent,
 
 	err = load_nilfs(nilfs, sbi);
 	if (err)
-		goto failed_sbi;
+		goto failed_nilfs;
 
 	cno = nilfs_last_cno(nilfs);
 	err = nilfs_attach_checkpoint(sbi, cno, true, &fsroot);
 	if (err) {
 		printk(KERN_ERR "NILFS: error loading last checkpoint "
 		       "(checkpoint number=%llu).\n", (unsigned long long)cno);
-		goto failed_sbi;
+		goto failed_nilfs;
 	}
 
 	if (!(sb->s_flags & MS_RDONLY)) {
@@ -948,8 +951,10 @@ nilfs_fill_super(struct super_block *sb, void *data, int silent,
  failed_checkpoint:
 	nilfs_put_root(fsroot);
 
+ failed_nilfs:
+	destroy_nilfs(nilfs);
+
  failed_sbi:
-	put_nilfs(nilfs);
 	sb->s_fs_info = NULL;
 	kfree(sbi);
 	return err;
@@ -1108,7 +1113,6 @@ nilfs_get_sb(struct file_system_type *fs_type, int flags,
 	struct nilfs_super_data sd;
 	struct super_block *s;
 	fmode_t mode = FMODE_READ;
-	struct the_nilfs *nilfs;
 	struct dentry *root_dentry;
 	int err, s_new = false;
 
@@ -1126,18 +1130,10 @@ nilfs_get_sb(struct file_system_type *fs_type, int flags,
 		goto failed;
 	}
 
-	nilfs = find_or_create_nilfs(sd.bdev);
-	if (!nilfs) {
-		err = -ENOMEM;
-		goto failed;
-	}
-
-	mutex_lock(&nilfs->ns_mount_mutex);
-
 	s = sget(fs_type, nilfs_test_bdev_super, nilfs_set_bdev_super, sd.bdev);
 	if (IS_ERR(s)) {
 		err = PTR_ERR(s);
-		goto failed_unlock;
+		goto failed;
 	}
 
 	if (!s->s_root) {
@@ -1151,10 +1147,9 @@ nilfs_get_sb(struct file_system_type *fs_type, int flags,
 		strlcpy(s->s_id, bdevname(sd.bdev, b), sizeof(s->s_id));
 		sb_set_blocksize(s, block_size(sd.bdev));
 
-		err = nilfs_fill_super(s, data, flags & MS_SILENT ? 1 : 0,
-				       nilfs);
+		err = nilfs_fill_super(s, data, flags & MS_SILENT ? 1 : 0);
 		if (err)
-			goto cancel_new;
+			goto failed_super;
 
 		s->s_flags |= MS_ACTIVE;
 	} else if (!sd.cno) {
@@ -1184,17 +1179,12 @@ nilfs_get_sb(struct file_system_type *fs_type, int flags,
 
 	if (sd.cno) {
 		err = nilfs_attach_snapshot(s, sd.cno, &root_dentry);
-		if (err) {
-			if (s_new)
-				goto cancel_new;
+		if (err)
 			goto failed_super;
-		}
 	} else {
 		root_dentry = dget(s->s_root);
 	}
 
-	mutex_unlock(&nilfs->ns_mount_mutex);
-	put_nilfs(nilfs);
 	if (!s_new)
 		close_bdev_exclusive(sd.bdev, mode);
 
@@ -1204,24 +1194,10 @@ nilfs_get_sb(struct file_system_type *fs_type, int flags,
 
  failed_super:
 	deactivate_locked_super(s);
- failed_unlock:
-	mutex_unlock(&nilfs->ns_mount_mutex);
-	put_nilfs(nilfs);
+
  failed:
-	close_bdev_exclusive(sd.bdev, mode);
-
-	return err;
-
- cancel_new:
-	/* Abandoning the newly allocated superblock */
-	mutex_unlock(&nilfs->ns_mount_mutex);
-	put_nilfs(nilfs);
-	deactivate_locked_super(s);
-	/*
-	 * This deactivate_locked_super() invokes close_bdev_exclusive().
-	 * We must finish all post-cleaning before this call;
-	 * put_nilfs() needs the block device.
-	 */
+	if (!s_new)
+		close_bdev_exclusive(sd.bdev, mode);
 	return err;
 }
 
