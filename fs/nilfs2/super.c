@@ -48,7 +48,6 @@
 #include <linux/smp_lock.h>
 #include <linux/vfs.h>
 #include <linux/writeback.h>
-#include <linux/kobject.h>
 #include <linux/seq_file.h>
 #include <linux/mount.h>
 #include "nilfs.h"
