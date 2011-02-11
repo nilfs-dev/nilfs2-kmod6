@@ -666,6 +666,7 @@ void nilfs_delete_inode(struct inode *inode)
 	struct nilfs_transaction_info ti;
 	struct super_block *sb = inode->i_sb;
 	struct nilfs_inode_info *ii = NILFS_I(inode);
+	int ret;
 
 	if (!ii->i_root || unlikely(is_bad_inode(inode))) {
 		if (inode->i_data.nrpages)
@@ -682,8 +683,9 @@ void nilfs_delete_inode(struct inode *inode)
 	nilfs_truncate_bmap(ii, 0);
 	nilfs_mark_inode_dirty(inode);
 
-	nilfs_ifile_delete_inode(ii->i_root->ifile, inode->i_ino);
-	atomic_dec(&ii->i_root->inodes_count);
+	ret = nilfs_ifile_delete_inode(ii->i_root->ifile, inode->i_ino);
+	if (!ret)
+		atomic_dec(&ii->i_root->inodes_count);
 
 	clear_inode(inode);
 
