@@ -77,7 +77,7 @@ static int nilfs_remount(struct super_block *sb, int *flags, char *data);
 
 static void nilfs_set_error(struct super_block *sb)
 {
-	struct the_nilfs *nilfs = NILFS_SB(sb)->s_nilfs;
+	struct the_nilfs *nilfs = sb->s_fs_info;
 	struct nilfs_super_block **sbp;
 
 	down_write(&nilfs->ns_sem);
@@ -109,7 +109,7 @@ static void nilfs_set_error(struct super_block *sb)
 void nilfs_error(struct super_block *sb, const char *function,
 		 const char *fmt, ...)
 {
-	struct the_nilfs *nilfs = NILFS_SB(sb)->s_nilfs;
+	struct the_nilfs *nilfs = sb->s_fs_info;
 	va_list args;
 
 	va_start(args, fmt);
@@ -198,7 +198,7 @@ static void nilfs_clear_inode(struct inode *inode)
 
 static int nilfs_sync_super(struct super_block *sb, int flag)
 {
-	struct the_nilfs *nilfs = NILFS_SB(sb)->s_nilfs;
+	struct the_nilfs *nilfs = sb->s_fs_info;
 	int err;
 	int barrier_done = 0;
 
@@ -280,7 +280,7 @@ void nilfs_set_log_cursor(struct nilfs_super_block *sbp,
 struct nilfs_super_block **nilfs_prepare_super(struct super_block *sb,
 					       int flip)
 {
-	struct the_nilfs *nilfs = NILFS_SB(sb)->s_nilfs;
+	struct the_nilfs *nilfs = sb->s_fs_info;
 	struct nilfs_super_block **sbp = nilfs->ns_sbp;
 
 	/* nilfs->ns_sem must be locked by the caller. */
@@ -306,7 +306,7 @@ struct nilfs_super_block **nilfs_prepare_super(struct super_block *sb,
 
 int nilfs_commit_super(struct super_block *sb, int flag)
 {
-	struct the_nilfs *nilfs = NILFS_SB(sb)->s_nilfs;
+	struct the_nilfs *nilfs = sb->s_fs_info;
 	struct nilfs_super_block **sbp = nilfs->ns_sbp;
 	time_t t;
 
@@ -339,7 +339,7 @@ int nilfs_commit_super(struct super_block *sb, int flag)
  */
 int nilfs_cleanup_super(struct super_block *sb)
 {
-	struct the_nilfs *nilfs = NILFS_SB(sb)->s_nilfs;
+	struct the_nilfs *nilfs = sb->s_fs_info;
 	struct nilfs_super_block **sbp;
 	int flag = NILFS_SB_COMMIT;
 	int ret = -EIO;
@@ -364,8 +364,7 @@ int nilfs_cleanup_super(struct super_block *sb)
 
 static void nilfs_put_super(struct super_block *sb)
 {
-	struct nilfs_sb_info *sbi = NILFS_SB(sb);
-	struct the_nilfs *nilfs = sbi->s_nilfs;
+	struct the_nilfs *nilfs = sb->s_fs_info;
 
 	lock_kernel();
 
@@ -382,16 +381,14 @@ static void nilfs_put_super(struct super_block *sb)
 	iput(nilfs->ns_dat);
 
 	destroy_nilfs(nilfs);
-	sbi->s_super = NULL;
 	sb->s_fs_info = NULL;
-	kfree(sbi);
 
 	unlock_kernel();
 }
 
 static int nilfs_sync_fs(struct super_block *sb, int wait)
 {
-	struct the_nilfs *nilfs = NILFS_SB(sb)->s_nilfs;
+	struct the_nilfs *nilfs = sb->s_fs_info;
 	struct nilfs_super_block **sbp;
 	int err = 0;
 
@@ -415,7 +412,7 @@ static int nilfs_sync_fs(struct super_block *sb, int wait)
 int nilfs_attach_checkpoint(struct super_block *sb, __u64 cno, int curr_mnt,
 			    struct nilfs_root **rootp)
 {
-	struct the_nilfs *nilfs = NILFS_SB(sb)->s_nilfs;
+	struct the_nilfs *nilfs = sb->s_fs_info;
 	struct nilfs_root *root;
 	struct nilfs_checkpoint *raw_cp;
 	struct buffer_head *bh_cp;
@@ -468,7 +465,7 @@ int nilfs_attach_checkpoint(struct super_block *sb, __u64 cno, int curr_mnt,
 
 static int nilfs_freeze(struct super_block *sb)
 {
-	struct the_nilfs *nilfs = NILFS_SB(sb)->s_nilfs;
+	struct the_nilfs *nilfs = sb->s_fs_info;
 	int err;
 
 	if (sb->s_flags & MS_RDONLY)
@@ -483,7 +480,7 @@ static int nilfs_freeze(struct super_block *sb)
 
 static int nilfs_unfreeze(struct super_block *sb)
 {
-	struct the_nilfs *nilfs = NILFS_SB(sb)->s_nilfs;
+	struct the_nilfs *nilfs = sb->s_fs_info;
 
 	if (sb->s_flags & MS_RDONLY)
 		return 0;
@@ -546,7 +543,7 @@ static int nilfs_statfs(struct dentry *dentry, struct kstatfs *buf)
 static int nilfs_show_options(struct seq_file *seq, struct vfsmount *vfs)
 {
 	struct super_block *sb = vfs->mnt_sb;
-	struct the_nilfs *nilfs = NILFS_SB(sb)->s_nilfs;
+	struct the_nilfs *nilfs = sb->s_fs_info;
 	struct nilfs_root *root = NILFS_I(vfs->mnt_root->d_inode)->i_root;
 
 	if (!nilfs_test_opt(nilfs, BARRIER))
@@ -611,7 +608,7 @@ static match_table_t tokens = {
 
 static int parse_options(char *options, struct super_block *sb, int is_remount)
 {
-	struct the_nilfs *nilfs = NILFS_SB(sb)->s_nilfs;
+	struct the_nilfs *nilfs = sb->s_fs_info;
 	char *p;
 	substring_t args[MAX_OPT_ARGS];
 
@@ -680,7 +677,7 @@ static inline void
 nilfs_set_default_options(struct super_block *sb,
 			  struct nilfs_super_block *sbp)
 {
-	struct the_nilfs *nilfs = NILFS_SB(sb)->s_nilfs;
+	struct the_nilfs *nilfs = sb->s_fs_info;
 
 	nilfs->ns_mount_opt =
 		NILFS_MOUNT_ERRORS_RO | NILFS_MOUNT_BARRIER;
@@ -688,7 +685,7 @@ nilfs_set_default_options(struct super_block *sb,
 
 static int nilfs_setup_super(struct super_block *sb, int is_mount)
 {
-	struct the_nilfs *nilfs = NILFS_SB(sb)->s_nilfs;
+	struct the_nilfs *nilfs = sb->s_fs_info;
 	struct nilfs_super_block **sbp;
 	int max_mnt_count;
 	int mnt_count;
@@ -746,7 +743,7 @@ int nilfs_store_magic_and_option(struct super_block *sb,
 				 struct nilfs_super_block *sbp,
 				 char *data)
 {
-	struct the_nilfs *nilfs = NILFS_SB(sb)->s_nilfs;
+	struct the_nilfs *nilfs = sb->s_fs_info;
 
 	sb->s_magic = le16_to_cpu(sbp->s_magic);
 
@@ -841,7 +838,7 @@ static int nilfs_get_root_dentry(struct super_block *sb,
 static int nilfs_attach_snapshot(struct super_block *s, __u64 cno,
 				 struct dentry **root_dentry)
 {
-	struct the_nilfs *nilfs = NILFS_SB(s)->s_nilfs;
+	struct the_nilfs *nilfs = s->s_fs_info;
 	struct nilfs_root *root;
 	int ret;
 
@@ -893,7 +890,7 @@ static int nilfs_try_to_shrink_tree(struct dentry *root_dentry)
 
 int nilfs_checkpoint_is_mounted(struct super_block *sb, __u64 cno)
 {
-	struct the_nilfs *nilfs = NILFS_SB(sb)->s_nilfs;
+	struct the_nilfs *nilfs = sb->s_fs_info;
 	struct nilfs_root *root;
 	struct inode *inode;
 	struct dentry *dentry;
@@ -906,7 +903,7 @@ int nilfs_checkpoint_is_mounted(struct super_block *sb, __u64 cno)
 		return true;	/* protect recent checkpoints */
 
 	ret = false;
-	root = nilfs_lookup_root(NILFS_SB(sb)->s_nilfs, cno);
+	root = nilfs_lookup_root(nilfs, cno);
 	if (root) {
 		inode = nilfs_ilookup(sb, root, NILFS_ROOT_INO);
 		if (inode) {
@@ -936,25 +933,16 @@ static int
 nilfs_fill_super(struct super_block *sb, void *data, int silent)
 {
 	struct the_nilfs *nilfs;
-	struct nilfs_sb_info *sbi;
 	struct nilfs_root *fsroot;
 	struct backing_dev_info *bdi;
 	__u64 cno;
 	int err;
 
-	sbi = kzalloc(sizeof(*sbi), GFP_KERNEL);
-	if (!sbi)
+	nilfs = alloc_nilfs(sb->s_bdev);
+	if (!nilfs)
 		return -ENOMEM;
 
-	sb->s_fs_info = sbi;
-	sbi->s_super = sb;
-
-	nilfs = alloc_nilfs(sb->s_bdev);
-	if (!nilfs) {
-		err = -ENOMEM;
-		goto failed_sbi;
-	}
-	sbi->s_nilfs = nilfs;
+	sb->s_fs_info = nilfs;
 
 	err = init_nilfs(nilfs, sb, (char *)data);
 	if (err)
@@ -1013,16 +1001,12 @@ nilfs_fill_super(struct super_block *sb, void *data, int silent)
 
  failed_nilfs:
 	destroy_nilfs(nilfs);
-
- failed_sbi:
-	sb->s_fs_info = NULL;
-	kfree(sbi);
 	return err;
 }
 
 static int nilfs_remount(struct super_block *sb, int *flags, char *data)
 {
-	struct the_nilfs *nilfs = NILFS_SB(sb)->s_nilfs;
+	struct the_nilfs *nilfs = sb->s_fs_info;
 	unsigned long old_sb_flags;
 	unsigned long old_mount_opt;
 	int err;
@@ -1107,7 +1091,6 @@ static int nilfs_remount(struct super_block *sb, int *flags, char *data)
 
 struct nilfs_super_data {
 	struct block_device *bdev;
-	struct nilfs_sb_info *sbi;
 	__u64 cno;
 	int flags;
 };
