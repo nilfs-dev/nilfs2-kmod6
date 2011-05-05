@@ -35,17 +35,6 @@
 #include "btnode.h"
 
 
-void nilfs_btnode_cache_init_once(struct address_space *btnc)
-{
-	nilfs_mapping_init_once(btnc);
-}
-
-void nilfs_btnode_cache_init(struct address_space *btnc,
-			     struct backing_dev_info *bdi)
-{
-	nilfs_mapping_init(btnc, bdi);
-}
-
 void nilfs_btnode_cache_clear(struct address_space *btnc)
 {
 	invalidate_mapping_pages(btnc, 0, -1);
