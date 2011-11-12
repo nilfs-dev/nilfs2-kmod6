@@ -1,3 +1,13 @@
+nilfs2-kmod-0.2.0  Sun Nov 13, 2011 JST
+
+	* backported nilfs2 changes upto v2.6.36.
+	* backported following critical fixes:
+	* fix crash after one superblock became unavailable
+	* add free entries count only if clear bit operation succeeded
+	* fix incorrect block address termination in node concatenation
+	* fix missing block address termination in btree node shrinking
+	* fix problem in setting checkpoint interval
+
 nilfs2-kmod-0.1.0  Sat Nov 12, 2011 JST
 
 	* Initial version derived from stable kernel-2.6.32.y.
