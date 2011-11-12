@@ -47,10 +47,12 @@ KSRC := /lib/modules/$(KVER)/build
 MDIR := /lib/modules/$(KVER)/kernel/fs/nilfs2/
 PWD := $(shell pwd)
 
+PREINC := -I$(PWD)/../../include
 CFLAGS += -Wall
 
 default:
-	$(MAKE) -C $(KSRC) SUBDIRS=$(PWD) BUILD_DIR=$(PWD) modules
+	$(MAKE) -C $(KSRC) SUBDIRS=$(PWD) BUILD_DIR=$(PWD) \
+	NOSTDINC_FLAGS=$(PREINC) modules
 
 install: unload
 	install -d $(MDIR)
