@@ -1,0 +1,21 @@
+* Required packages
+
+- GCC
+- GNU Make
+- GNU Binutils
+
+* Supported Linux distributions
+
+- Centos 6
+- Sience Linux 6
+- Vanilla kernel (2.6.32.y)
+
+* How to compile
+
+ $ make
+
+* How to get development sources
+
+ $ cd your-work-directory
+ $ git clone http://git.nilfs.org/nilfs2-kmod.git
+
