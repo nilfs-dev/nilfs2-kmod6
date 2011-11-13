@@ -1,3 +1,8 @@
+nilfs2-kmod-0.2.1  Sun Nov 13, 2011 JST
+
+	* update README file
+	* fix dependency issues on inode_init_owner inline function
+
 nilfs2-kmod-0.2.0  Sun Nov 13, 2011 JST
 
 	* backported nilfs2 changes upto v2.6.36.
