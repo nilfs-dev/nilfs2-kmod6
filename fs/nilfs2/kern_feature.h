@@ -36,6 +36,9 @@
 #endif /* LINUX_VERSION_CODE */
 
 
+#include <linux/sched.h>	/* current_fsuid() and current_fsgid() */
+#include <linux/fs.h>
+
 /*
  * definitions dependent to above macros
  */
