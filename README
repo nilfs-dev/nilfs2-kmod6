@@ -1,21 +1,31 @@
 * Required packages
 
 - GCC
-- GNU Make
-- GNU Binutils
+- GNU make
+- GNU binutils
+- Kernel headers (kernel-headers)
+
+You also need to install nilfs-utils package.  The garbage collector
+of NILFS, snapshot management tools, man-pages, and other filesystem
+administration tools, are included in the package.
 
 * Supported Linux distributions
 
 - Centos 6
-- Sience Linux 6
+- Scientific Linux 6
 - Vanilla kernel (2.6.32.y)
-
-* How to compile
-
- $ make
 
 * How to get development sources
 
  $ cd your-work-directory
- $ git clone http://git.nilfs.org/nilfs2-kmod.git
+ $ git clone http://git.nilfs.org/nilfs2-kmod-centos6.git
+
+* How to compile
+
+ $ cd nilfs2-kmod-centos6
+ $ make
+
+* How to install
+
+ $ sudo make install
 
