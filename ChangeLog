@@ -1,3 +1,20 @@
+nilfs2-kmod-0.3.0  Mon Nov 14, 2011 JST
+
+	* backported updates of nilfs2 upto v3.0:
+	* support online resizing
+	* support fiemap
+	* support filesystem freeze/thaw
+	* implement FS_IOC_GETFLAGS/SETFLAGS/GETVERSION ioctls
+	* add compat ioctls
+	* record used amount of each checkpoint in checkpoint list
+	* remove own inode hash used for GC
+	* remove own inode allocator and destructor for metadata files
+	* remove own super block instance per device
+	* do not allocate multiple super block instances for a device
+	* get rid of private page allocator
+	* get rid of nilfs_sb_info structure
+	* get rid of GCDAT inode
+
 nilfs2-kmod-0.2.1  Sun Nov 13, 2011 JST
 
 	* update README file
