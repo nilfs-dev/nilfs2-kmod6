@@ -104,6 +104,54 @@ enum {
  *   "nilfs2: replace barriers with explicit flush / FUA usage"
  * commit dd3932eddf428571762596e17b65f5dc92ca361b
  *   "block: remove BLKDEV_IFL_WAIT"
+ * commit 7de9c6ee3ecffd99e1628e81a5ea5468f7581a1f
+ *   "new helper: ihold()"
+ * commit f629d1c9bd0dbc44a6c4f9a4a67d1646c42bfc6f
+ *   "mm: add account_page_writeback()"
+ * commit e4c59d61e80529aebca4a3690b4378f2c6fc4e82
+ *   "convert nilfs"
+ * commit e525fd89d380c4a94c0d63913a1dd1a593ed25e7
+ *   "block: make blkdev_get/put() handle exclusive access"
+ * commit d4d77629953eabd3c14f6fa5746f6b28babfc55f
+ *   "block: clean up blkdev_get() wrappers and their users"
+ * commit fa0d7e3de6d6fc5004ad9dea0dd6b286af8f03e9
+ *   "fs: icache RCU free inodes"
+ * commit b74c79e99389cd79b31fcc08f82c24e492e63c7e
+ *   "fs: provide rcu-walk aware permission i_ops"
+ * commit b004a5eb0babec7ef91558f73315ef49e5a1f285
+ *   "fs/nilfs2/super.c: Use printf extension %pV"
+ * commit 2aa15890f3c191326678f1bd68af61ec6b8753ec
+ *   "mm: prevent concurrent unmap_mapping_range() on the same inode"
+ * commit 7eaceaccab5f40bbfda044629a6298616aeaed50
+ *   "block: remove per-queue plugging"
+ * commit 721a9602e6607417c6bc15b18e97a2f35266c690
+ *   "block: kill off REQ_UNPLUG"
+ * commit 4d3cf1bc557dc8b88e1cabf1980b3baa3380a641
+ *   "nilfs2: move NILFS_SUPER_MAGIC to linux/magic.h"
+ * commit a49ebbabb084d345991b72818a119616431416f2
+ *   "nilfs2: use little-endian bitops"
+ * commit 2e1496707560ecf98e9b0604622c0990f94861d3
+ *   "userns: rename is_owner_or_cap to inode_owner_or_capable"
+ * commit d611b22f1a5ddd0823e9d6a30bac91219f800e41
+ *   "nilfs2: fix oops due to a bad aops initialization"
+ * commit 7dcda1c96d7c643101d4a05579ef4512a4baa7ef
+ *   "fs: export empty_aops"
+ * commit eaae0f37d83bed7ccd0c6d0f52de1de44f92aecc
+ *   "nilfs2: merge list_del()/list_add_tail() to list_move_tail()"
+ * commit 293ce0ed8c2d22ff044e6e9fa7b1d4be425d189b
+ *   "nilfs2: use empty_aops for gc-inodes"
+ * commit 79bf7c732b5ff75b96022ed9d29181afd3d2509c
+ *   "vfs: push dentry_unhash on rmdir into file systems"
+ * commit e4eaac06bcccb2a70bca6a2de9871882dce2aa14
+ *   "vfs: push dentry_unhash on rename_dir into file systems"
+ * commit aa38572954ade525817fe88c54faebf85e5a61c0
+ *   "fs: pass exact type of data dirties to ->dirty_inode"
+ * commit a9049376ee05bf966bfe2b081b5071326856890a
+ *   "make d_splice_alias(ERR_PTR(err), dentry) = ERR_PTR(err)"
+ * commit dfb55de89879a1c32a70d0a510b3701ed9a6b855
+ *   "nilfs2: remove unnecessary dentry_unhash from rmdir, dir rename"
+ * commit 730e908f3539066d4aa01f4720ebfc750ce4d045
+ *   "nilfs2_permission() doesn't need to bail out in RCU mode"
  */
 
 #endif /* NILFS_KERN_FEATURE_H */
