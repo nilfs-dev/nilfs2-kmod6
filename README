@@ -15,6 +15,10 @@ administration tools, are included in the package.
 - Scientific Linux 6
 - Vanilla kernel (2.6.32.y)
 
+Note that the current version of NILFS2 does not work with
+SELinux-enabled systems because extended attributes are not supported
+yet.
+
 * How to get development sources
 
  $ cd your-work-directory
