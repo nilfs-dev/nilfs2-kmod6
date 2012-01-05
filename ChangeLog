@@ -1,3 +1,10 @@
+nilfs2-kmod-0.3.1  Thu Jan 5, 2012 JST
+
+	* fix potential integer overflow in nilfs_ioctl_clean_segments()
+	* fix regression of compat ioctl
+	* describe restriction on SELinux-enabled systems
+	* change README file description on the git repository
+
 nilfs2-kmod-0.3.0  Mon Nov 14, 2011 JST
 
 	* backported updates of nilfs2 upto v3.0:
