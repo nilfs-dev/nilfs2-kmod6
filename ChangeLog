@@ -1,3 +1,9 @@
+nilfs2-kmod-0.3.2  Sat Mar 17, 2012 JST
+
+	* fix NULL pointer dereference in nilfs_load_super_block()
+	* clamp ns_r_segments_percentage to [1, 99]
+	* avoid overflowing segment numbers in nilfs_ioctl_clean_segments()
+
 nilfs2-kmod-0.3.1  Thu Jan 5, 2012 JST
 
 	* fix potential integer overflow in nilfs_ioctl_clean_segments()
