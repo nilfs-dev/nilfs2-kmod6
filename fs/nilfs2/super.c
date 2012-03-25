@@ -203,7 +203,7 @@ static int nilfs_sync_super(struct super_block *sb, int flag)
 	int err;
 	int barrier_done = 0;
 
-	if (nilfs_test_opt(nilfs, BARRIER)) {
+	if (nilfs_sb_barrier(nilfs)) {
 		set_buffer_ordered(nilfs->ns_sbh[0]);
 		barrier_done = 1;
 	}
@@ -212,8 +212,8 @@ static int nilfs_sync_super(struct super_block *sb, int flag)
 	err = sync_dirty_buffer(nilfs->ns_sbh[0]);
 	if (err == -EOPNOTSUPP && barrier_done) {
 		nilfs_warning(sb, __func__, "barrier-based sync failed. "
-			      "disabling barriers\n");
-		nilfs_clear_opt(nilfs, BARRIER);
+			      "disabling barriers for superblock\n");
+		clear_nilfs_sb_barrier(nilfs);
 		barrier_done = 0;
 		clear_buffer_ordered(nilfs->ns_sbh[0]);
 		goto retry;
@@ -1159,6 +1159,11 @@ static int nilfs_remount(struct super_block *sb, int *flags, char *data)
 		       "incomplete recovery state.\n", sb->s_id);
 		goto restore_opts;
 	}
+
+	if (nilfs_test_opt(nilfs, BARRIER))
+		set_nilfs_sb_barrier(nilfs);
+	else
+		clear_nilfs_sb_barrier(nilfs);
 
 	if ((*flags & MS_RDONLY) == (sb->s_flags & MS_RDONLY))
 		goto out;

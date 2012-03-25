@@ -629,6 +629,9 @@ int init_nilfs(struct the_nilfs *nilfs, struct super_block *sb, char *data)
 	if (err)
 		goto failed_sbh;
 
+	if (nilfs_test_opt(nilfs, BARRIER))
+		set_nilfs_sb_barrier(nilfs);
+
 	set_nilfs_init(nilfs);
 	err = 0;
  out:
