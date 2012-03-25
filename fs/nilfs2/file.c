@@ -37,18 +37,24 @@ int nilfs_sync_file(struct file *file, struct dentry *dentry, int datasync)
 	 * This function should be implemented when the writeback function
 	 * will be implemented.
 	 */
+	struct the_nilfs *nilfs;
 	struct inode *inode = dentry->d_inode;
-	int err;
+	int err = 0;
 
-	if (!nilfs_inode_dirty(inode))
-		return 0;
+	if (nilfs_inode_dirty(inode)) {
+		if (datasync)
+			err = nilfs_construct_dsync_segment(inode->i_sb, inode,
+							    0, LLONG_MAX);
+		else
+			err = nilfs_construct_segment(inode->i_sb);
+	}
 
-	if (datasync)
-		err = nilfs_construct_dsync_segment(inode->i_sb, inode, 0,
-						    LLONG_MAX);
-	else
-		err = nilfs_construct_segment(inode->i_sb);
-
+	nilfs = inode->i_sb->s_fs_info;
+	if (!err && nilfs_test_opt(nilfs, BARRIER)) {
+		err = blkdev_issue_flush(inode->i_sb->s_bdev, NULL);
+		if (err != -EIO)
+			err = 0;
+	}
 	return err;
 }
 
