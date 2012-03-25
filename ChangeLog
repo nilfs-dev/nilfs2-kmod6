@@ -1,3 +1,8 @@
+nilfs2-kmod-0.4.0  Mon Mar 26, 2012 JST
+
+	* flush disk caches in syncing
+	* add super block barrier flag
+
 nilfs2-kmod-0.3.2  Sat Mar 17, 2012 JST
 
 	* fix NULL pointer dereference in nilfs_load_super_block()
