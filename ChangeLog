@@ -1,3 +1,8 @@
+nilfs2-kmod-0.4.1  Mon Apr 2, 2012 JST
+
+	* kill warning on barrier that RHEL6.1 or later outputs.
+	* add *.ko.unsigned to .gitignore file
+
 nilfs2-kmod-0.4.0  Mon Mar 26, 2012 JST
 
 	* flush disk caches in syncing
