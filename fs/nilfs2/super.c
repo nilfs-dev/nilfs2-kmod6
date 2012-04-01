@@ -49,6 +49,7 @@
 #include <linux/writeback.h>
 #include <linux/seq_file.h>
 #include <linux/mount.h>
+#include "kern_feature.h"
 #include "nilfs.h"
 #include "export.h"
 #include "mdt.h"
@@ -201,6 +202,7 @@ static int nilfs_sync_super(struct super_block *sb, int flag)
 {
 	struct the_nilfs *nilfs = sb->s_fs_info;
 	int err;
+#if HAVE_BH_ORDERED
 	int barrier_done = 0;
 
 	if (nilfs_sb_barrier(nilfs)) {
@@ -218,6 +220,29 @@ static int nilfs_sync_super(struct super_block *sb, int flag)
 		clear_buffer_ordered(nilfs->ns_sbh[0]);
 		goto retry;
 	}
+#else
+ retry:
+	set_buffer_dirty(nilfs->ns_sbh[0]);
+	if (nilfs_sb_barrier(nilfs)) {
+ #if HAVE_BIO_BARRIER
+		err = __sync_dirty_buffer(nilfs->ns_sbh[0],
+					  WRITE_SYNC | WRITE_BARRIER);
+		if (err == -EOPNOTSUPP) {
+			nilfs_warning(sb, __func__,
+				      "barrier-based sync failed. "
+				      "disabling barriers for superblock\n");
+			clear_nilfs_sb_barrier(nilfs);
+			goto retry;
+		}
+ #else
+		err = __sync_dirty_buffer(nilfs->ns_sbh[0],
+					  WRITE_SYNC | WRITE_FLUSH_FUA);
+ #endif /* HAVE_BIO_BARRIER */
+	} else {
+		err = sync_dirty_buffer(nilfs->ns_sbh[0]);
+	}
+#endif /* HAVE_BH_ORDERED */
+
 	if (unlikely(err)) {
 		printk(KERN_ERR
 		       "NILFS: unable to write superblock (err=%d)\n", err);

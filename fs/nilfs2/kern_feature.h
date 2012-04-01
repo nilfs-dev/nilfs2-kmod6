@@ -17,15 +17,34 @@
  */
 
 /*
- * for Red Hat Enterprise Linux / CentOS 5.x
+ * for Red Hat Enterprise Linux 6.x (and clones like CentOS or SL)
  */
 #if defined(RHEL_MAJOR) && (RHEL_MAJOR == 6)
+# if (RHEL_MINOR > 0)
+#  define	HAVE_BH_ORDERED		0
+#  define	HAVE_BIO_BARRIER	0
+# endif
 #endif
 
 /*
  * defaults dependent to kernel versions
  */
 #ifdef LINUX_VERSION_CODE
+/*
+ * barrier bio was deprecated at linux-2.6.37.
+ * Newer kernels use FLUSH/FUA instead.
+ */
+#ifndef HAVE_BIO_BARRIER
+# define HAVE_BIO_BARRIER \
+	(LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 37))
+#endif
+/*
+ * Ordered flag of buffer head was deprecated at linux-2.6.36.
+ */
+#ifndef HAVE_BH_ORDERED
+# define HAVE_BH_ORDERED \
+	(LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 36))
+#endif
 /*
  * linux-2.6.35 and the later kernels have inode_init_owner().
  */
