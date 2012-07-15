@@ -1,3 +1,8 @@
+nilfs2-kmod-0.4.3  Sun Jul 15, 2012 JST
+
+	* fix deadlock issue between chcp and thaw ioctls.
+	* fix timing issue between rmcp and chcp ioctls.
+
 nilfs2-kmod-0.4.2  Sun Jun 3, 2012 JST
 
 	* ensure proper cache clearing for gc-inodes; this fixes warning
