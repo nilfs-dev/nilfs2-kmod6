@@ -234,9 +234,8 @@ THE_NILFS_FNS(SB_BARRIER, sb_barrier)
  * @count: refcount of this structure
  * @nilfs: nilfs object
  * @ifile: inode file
- * @root: root inode
  * @inodes_count: number of inodes
- * @blocks_count: number of blocks (Reserved)
+ * @blocks_count: number of blocks
  */
 struct nilfs_root {
 	__u64 cno;
