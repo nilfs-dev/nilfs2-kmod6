@@ -27,6 +27,7 @@
 #include <linux/backing-dev.h>
 #include <linux/random.h>
 #include <linux/crc32.h>
+#include "kern_feature.h"
 #include "nilfs.h"
 #include "segment.h"
 #include "alloc.h"
@@ -668,7 +669,12 @@ int nilfs_discard_segments(struct the_nilfs *nilfs, __u64 *segnump,
 						   start * sects_per_block,
 						   nblocks * sects_per_block,
 						   GFP_NOFS,
-						   DISCARD_FL_BARRIER);
+#if HAVE_BIO_BARRIER
+						   DISCARD_FL_BARRIER
+#else
+						   0
+#endif
+				);
 			if (ret < 0)
 				return ret;
 			nblocks = 0;
@@ -678,7 +684,12 @@ int nilfs_discard_segments(struct the_nilfs *nilfs, __u64 *segnump,
 		ret = blkdev_issue_discard(nilfs->ns_bdev,
 					   start * sects_per_block,
 					   nblocks * sects_per_block,
-					   GFP_NOFS, DISCARD_FL_BARRIER);
+#if HAVE_BIO_BARRIER
+					   GFP_NOFS, DISCARD_FL_BARRIER
+#else
+					   GFP_NOFS, 0
+#endif
+			);
 	return ret;
 }
 
