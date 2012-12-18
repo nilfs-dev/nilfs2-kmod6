@@ -1,3 +1,12 @@
+nilfs2-kmod-0.4.4  Wed Dec 19, 2012 JST
+
+	* fix deprecated barrier warning during discard mount
+	* remove references to long gone super operations
+	* add omitted comments for different structures in driver
+	  implementation
+	* add omitted comments for structures in nilfs2_fs.h
+	* add omitted comment for ns_mount_state field of the_nilfs structure
+
 nilfs2-kmod-0.4.3  Sun Jul 15, 2012 JST
 
 	* fix deadlock issue between chcp and thaw ioctls.
