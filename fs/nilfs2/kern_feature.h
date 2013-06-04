@@ -23,6 +23,7 @@
 # if (RHEL_MINOR > 0)
 #  define	HAVE_BH_ORDERED		0
 #  define	HAVE_BIO_BARRIER	0
+#  define	HAVE_BLOCK_PAGE_MKWRITE_RETURN	1
 # endif
 #endif
 
@@ -30,6 +31,14 @@
  * defaults dependent to kernel versions
  */
 #ifdef LINUX_VERSION_CODE
+/*
+ * linux-3.0 and later kernels use block_page_mkwrite_return()
+ * and __block_page_mkwrite().
+ */
+#ifndef HAVE_BLOCK_PAGE_MKWRITE_RETURN
+# define HAVE_BLOCK_PAGE_MKWRITE_RETURN \
+	(LINUX_VERSION_CODE > KERNEL_VERSION(2, 6, 39))
+#endif
 /*
  * barrier bio was deprecated at linux-2.6.37.
  * Newer kernels use FLUSH/FUA instead.
@@ -57,10 +66,40 @@
 
 #include <linux/sched.h>	/* current_fsuid() and current_fsgid() */
 #include <linux/fs.h>
+#include <linux/buffer_head.h>
 
 /*
  * definitions dependent to above macros
  */
+#if !HAVE_BLOCK_PAGE_MKWRITE_RETURN
+#ifndef VM_FAULT_RETRY
+#define VM_FAULT_RETRY	0x0400	/* ->fault blocked, must retry */
+#endif
+static inline int block_page_mkwrite_return(int err)
+{
+	if (err == 0)
+		return VM_FAULT_LOCKED;
+	if (err == -EFAULT)
+		return VM_FAULT_NOPAGE;
+	if (err == -ENOMEM)
+		return VM_FAULT_OOM;
+	if (err == -EAGAIN)
+		return VM_FAULT_RETRY;
+	/* -ENOSPC, -EDQUOT, -EIO ... */
+	return VM_FAULT_SIGBUS;
+}
+
+static inline int __block_page_mkwrite(struct vm_area_struct *vma,
+				       struct vm_fault *vmf,
+				       get_block_t get_block)
+{
+	int ret;
+
+	ret = block_page_mkwrite(vma, vmf, get_block);
+	return ret != VM_FAULT_LOCKED ? ret : 0;
+}
+#endif
+
 #if !HAVE_INODE_INIT_OWNER
 static inline void
 inode_init_owner(struct inode *inode, const struct inode *dir, mode_t mode)
