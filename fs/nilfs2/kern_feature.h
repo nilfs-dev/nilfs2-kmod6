@@ -25,12 +25,26 @@
 #  define	HAVE_BIO_BARRIER	0
 #  define	HAVE_BLOCK_PAGE_MKWRITE_RETURN	1
 # endif
+# if (RHEL_MINOR > 3)
+#  define	HAVE_NEW_SB_FREEZE	1
+# endif
 #endif
 
 /*
  * defaults dependent to kernel versions
  */
 #ifdef LINUX_VERSION_CODE
+/*
+ * linux-3.6 and later kernels use new file system freezing mechanism
+ * with routines sb_start_pagefault/sb_end_pagefault,
+ * sb_start_intwrite/sb_end_intwrite, and
+ * sb_start_write()/sb_end_write().  These are used to provide proper
+ * freeze protection.
+ */
+#ifndef HAVE_NEW_SB_FREEZE
+# define HAVE_NEW_SB_FREEZE \
+	(LINUX_VERSION_CODE > KERNEL_VERSION(3, 5, 0))
+#endif
 /*
  * linux-3.0 and later kernels use block_page_mkwrite_return()
  * and __block_page_mkwrite().
@@ -71,6 +85,17 @@
 /*
  * definitions dependent to above macros
  */
+#if !HAVE_NEW_SB_FREEZE
+#define sb_start_pagefault(sb)  do { } while (0)
+#define sb_end_pagefault(sb)  do { } while (0)
+#define sb_start_intwrite(sb) \
+	do { vfs_check_frozen(sb, SB_FREEZE_WRITE); } while (0)
+#define sb_end_intwrite(sb)  do { } while (0)
+#else
+#undef vfs_check_frozen
+#define vfs_check_frozen(sb, level)  do { } while (0)
+#endif
+
 #if !HAVE_BLOCK_PAGE_MKWRITE_RETURN
 #ifndef VM_FAULT_RETRY
 #define VM_FAULT_RETRY	0x0400	/* ->fault blocked, must retry */
