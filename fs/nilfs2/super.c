@@ -1421,7 +1421,7 @@ struct file_system_type nilfs_fs_type = {
 	.name     = "nilfs2",
 	.get_sb   = nilfs_get_sb,
 	.kill_sb  = kill_block_super,
-	.fs_flags = FS_REQUIRES_DEV,
+	.fs_flags = FS_REQUIRES_DEV | FS_HAS_NEW_FREEZE,
 };
 
 static void nilfs_inode_init_once(void *obj)

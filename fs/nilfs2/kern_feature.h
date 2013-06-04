@@ -27,7 +27,15 @@
 # endif
 # if (RHEL_MINOR > 3)
 #  define	HAVE_NEW_SB_FREEZE	1
+#  define	HAVE_NEW_SB_FREEZE_FLAG	1
 # endif
+#endif
+
+/*
+ * defaults
+ */
+#ifndef HAVE_NEW_SB_FREEZE_FLAG
+# define HAVE_NEW_SB_FREEZE_FLAG	0
 #endif
 
 /*
@@ -94,6 +102,10 @@
 #else
 #undef vfs_check_frozen
 #define vfs_check_frozen(sb, level)  do { } while (0)
+#endif
+
+#if !HAVE_NEW_SB_FREEZE_FLAG
+#define FS_HAS_NEW_FREEZE	0
 #endif
 
 #if !HAVE_BLOCK_PAGE_MKWRITE_RETURN
