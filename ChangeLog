@@ -1,3 +1,11 @@
+nilfs2-kmod-0.4.5  Thu Jun 6, 2013 JST
+
+	* use new freezing mechanism for RHEL 6.4 or later
+	* fix issue of nilfs_set_page_dirty for page at EOF boundary
+	* fix issue with flush kernel thread after remount in RO mode
+	  because of driver's internal error or metadata corruption
+	* fix very long mount time issue
+
 nilfs2-kmod-0.4.4  Wed Dec 19, 2012 JST
 
 	* fix deprecated barrier warning during discard mount
