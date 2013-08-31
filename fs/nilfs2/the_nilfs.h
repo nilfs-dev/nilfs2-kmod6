@@ -31,6 +31,7 @@
 #include <linux/blkdev.h>
 #include <linux/backing-dev.h>
 #include <linux/slab.h>
+#include "kern_feature.h"
 
 struct nilfs_sc_info;
 

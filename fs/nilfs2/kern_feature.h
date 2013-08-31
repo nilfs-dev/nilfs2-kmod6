@@ -77,6 +77,15 @@
 	(LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 36))
 #endif
 /*
+ * Linux-2.6.36 and later kernels support atomic64_t type for all
+ * platforms.  Earlier kernels may need some glue code to keep
+ * backward compatibility.
+ */
+#ifndef HAVE_ATOMIC64_T
+# define HAVE_ATOMIC64_T \
+	(LINUX_VERSION_CODE > KERNEL_VERSION(2, 6, 35))
+#endif
+/*
  * linux-2.6.35 and the later kernels have inode_init_owner().
  */
 #ifndef HAVE_INODE_INIT_OWNER
@@ -150,6 +159,18 @@ inode_init_owner(struct inode *inode, const struct inode *dir, mode_t mode)
 		inode->i_gid = current_fsgid();
 	inode->i_mode = mode;
 }
+#endif
+
+#if !HAVE_ATOMIC64_T
+#ifndef ATOMIC64_INIT
+typedef atomic_t atomic64_t;
+#define atomic64_read(v)	atomic_read(v)
+#define atomic64_set(v, i)	atomic_set(v, i)
+#define atomic64_add(a, v)	atomic_add(a, v)
+#define atomic64_sub(a, v)	atomic_sub(a, v)
+#define atomic64_inc(v)		atomic_inc(v)
+#define atomic64_dec(v)		atomic_dec(v)
+#endif
 #endif
 
 enum {
