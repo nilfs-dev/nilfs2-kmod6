@@ -1,3 +1,13 @@
+nilfs2-kmod-0.5.0  Sat Aug 31, 2013 JST
+
+	* implement calculation of free inodes count
+	* use atomic64_t type for inodes_count and blocks_count fields in nilfs_root
+	  struct
+	* remove double bio_put() in nilfs_end_bio_write() for BIO_EOPNOTSUPP
+	  error
+	* fix issue with counting number of bio requests for BIO_EOPNOTSUPP
+	  error detection
+
 nilfs2-kmod-0.4.5  Thu Jun 6, 2013 JST
 
 	* use new freezing mechanism for RHEL 6.4 or later
