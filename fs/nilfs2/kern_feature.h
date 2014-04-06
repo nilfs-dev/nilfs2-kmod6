@@ -23,6 +23,7 @@
 # if (RHEL_MINOR > 0)
 #  define	HAVE_BH_ORDERED		0
 #  define	HAVE_BIO_BARRIER	0
+#  define	HAVE_FITRIM_IOCTL	1
 #  define	HAVE_BLOCK_PAGE_MKWRITE_RETURN	1
 # endif
 # if (RHEL_MINOR > 3)
@@ -42,6 +43,13 @@
  * defaults dependent to kernel versions
  */
 #ifdef LINUX_VERSION_CODE
+/*
+ * linux-2.6.37 and later kernels have FITRIM ioctl.
+ */
+#ifndef HAVE_FITRIM_IOCTL
+# define HAVE_FITRIM_IOCTL \
+	(LINUX_VERSION_CODE > KERNEL_VERSION(2, 6, 36))
+#endif
 /*
  * linux-3.6 and later kernels use new file system freezing mechanism
  * with routines sb_start_pagefault/sb_end_pagefault,
@@ -187,6 +195,15 @@ enum {
 	 */
 	FILEID_NILFS_WITH_PARENT = 0x62,
 };
+
+#if !HAVE_FITRIM_IOCTL
+struct fstrim_range {
+	__u64 start;
+	__u64 len;
+	__u64 minlen;
+};
+#define FITRIM		_IOWR('X', 121, struct fstrim_range)	/* Trim */
+#endif
 
 /*
  * The following patches are left unapplied during backporting later
