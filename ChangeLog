@@ -1,3 +1,11 @@
+nilfs2-kmod-0.6.0  Sun Apr 20, 2014 JST
+
+	* add NILFS_IOCTL_SET_SUINFO ioctl to reduce unnecessary GC operation
+	* add FITRIM ioctl support for nilfs2
+	* verify metadata sizes read from disk
+	* update project's web site in nilfs2.txt
+	* add comments for ioctls
+
 nilfs2-kmod-0.5.1  Sat Jan 18, 2014 JST
 
 	* fix segctor bug that causes file system corruption
