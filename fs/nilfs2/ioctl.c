@@ -1239,7 +1239,7 @@ static int nilfs_ioctl_set_suinfo(struct inode *inode, struct file *filp,
 	if (!capable(CAP_SYS_ADMIN))
 		return -EPERM;
 
-	ret = mnt_want_write_file(filp);
+	ret = mnt_want_write(filp->f_path.mnt);
 	if (ret)
 		return ret;
 
@@ -1286,7 +1286,7 @@ static int nilfs_ioctl_set_suinfo(struct inode *inode, struct file *filp,
 out_free:
 	vfree(kbuf);
 out:
-	mnt_drop_write_file(filp);
+	mnt_drop_write(filp->f_path.mnt);
 	return ret;
 }
 
