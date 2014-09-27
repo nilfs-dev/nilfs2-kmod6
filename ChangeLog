@@ -1,3 +1,7 @@
+nilfs2-kmod-0.6.1  Sat Sep 27, 2014 JST
+
+	* fix data loss with mmap()
+
 nilfs2-kmod-0.6.0  Sun Apr 20, 2014 JST
 
 	* add NILFS_IOCTL_SET_SUINFO ioctl to reduce unnecessary GC operation
