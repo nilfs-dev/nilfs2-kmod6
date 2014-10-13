@@ -51,11 +51,9 @@ int nilfs_sync_file(struct file *file, struct dentry *dentry, int datasync)
 	}
 
 	nilfs = inode->i_sb->s_fs_info;
-	if (!err && nilfs_test_opt(nilfs, BARRIER)) {
-		err = blkdev_issue_flush(inode->i_sb->s_bdev, NULL);
-		if (err != -EIO)
-			err = 0;
-	}
+	if (!err)
+		err = nilfs_flush_device(nilfs);
+
 	return err;
 }
 
