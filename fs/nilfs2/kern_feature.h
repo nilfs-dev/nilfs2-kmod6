@@ -38,6 +38,9 @@
 #ifndef HAVE_NEW_SB_FREEZE_FLAG
 # define HAVE_NEW_SB_FREEZE_FLAG	0
 #endif
+#ifndef HAVE_INODE_SET_FLAGS
+# define HAVE_INODE_SET_FLAGS		0
+#endif
 
 /*
  * defaults dependent to kernel versions
@@ -110,6 +113,21 @@
 /*
  * definitions dependent to above macros
  */
+#if !HAVE_INODE_SET_FLAGS
+static inline void inode_set_flags(struct inode *inode, unsigned int flags,
+				   unsigned int mask)
+{
+	unsigned int old_flags, new_flags;
+
+	WARN_ON_ONCE(flags & ~mask);
+	do {
+		old_flags = ACCESS_ONCE(inode->i_flags);
+		new_flags = (old_flags & ~mask) | flags;
+	} while (unlikely(cmpxchg(&inode->i_flags, old_flags,
+				  new_flags) != old_flags));
+}
+#endif
+
 #if !HAVE_NEW_SB_FREEZE
 #define sb_start_pagefault(sb)  do { } while (0)
 #define sb_end_pagefault(sb)  do { } while (0)
