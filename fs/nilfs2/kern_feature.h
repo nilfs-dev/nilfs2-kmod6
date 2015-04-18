@@ -41,6 +41,9 @@
 #ifndef HAVE_INODE_SET_FLAGS
 # define HAVE_INODE_SET_FLAGS		0
 #endif
+#ifndef HAVE_SET_MASK_BITS
+# define HAVE_SET_MASK_BITS		0
+#endif
 
 /*
  * defaults dependent to kernel versions
@@ -126,6 +129,21 @@ static inline void inode_set_flags(struct inode *inode, unsigned int flags,
 	} while (unlikely(cmpxchg(&inode->i_flags, old_flags,
 				  new_flags) != old_flags));
 }
+#endif
+
+#if !HAVE_SET_MASK_BITS
+#define set_mask_bits(ptr, _mask, _bits)	\
+({								\
+	const typeof(*ptr) mask = (_mask), bits = (_bits);	\
+	typeof(*ptr) old, new;					\
+								\
+	do {							\
+		old = ACCESS_ONCE(*ptr);			\
+		new = (old & ~mask) | bits;			\
+	} while (cmpxchg(ptr, old, new) != old);		\
+								\
+	new;							\
+})
 #endif
 
 #if !HAVE_NEW_SB_FREEZE
