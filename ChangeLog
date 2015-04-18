@@ -1,3 +1,25 @@
+nilfs2-kmod6-1.0.0  Sun Apr 19, 2015 JST
+
+	* fix potential memory overrun on inode
+	* fix gcc warning at nilfs_checkpoint_is_mounted()
+	* fix minor race issue with chattr:
+	  - put out gfp mask manipulation from nilfs_set_inode_flags()
+	  - add mimic of inode_set_flags() helper
+	  - use inode_set_flags() in nilfs_set_inode_flags() to
+	    atomically set inode->i_flags.
+	* improve execution time of lscp command on aged file systems:
+	  - unify type of key arguments in bmap interface
+	  - add bmap function to seek a valid key
+	  - add helper to find existent block on metadata file
+	  - improve execution time of NILFS_IOCTL_GET_CPINFO ioctl
+	* reduce the number of atomic bit operations with set_mask_bits
+	  helper:
+	  - do not use async write flag for segment summary buffers
+	  - add mimic of set_mask_bits() helper
+	  - use set_mask_bits() for operations on buffer state bitmap
+	* cleanup:
+	  - use bgl_lock_ptr() helper to simplify nilfs_mdt_bgl_lock()
+
 nilfs2-kmod-0.6.3  Sat Feb 7, 2015 JST
 
 	* fix the nilfs_iget() vs. nilfs_new_inode() races
