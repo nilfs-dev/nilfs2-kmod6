@@ -1092,7 +1092,11 @@ static int nilfs_ioctl_trim_fs(struct inode *inode, void __user *argp)
 	if (copy_from_user(&range, argp, sizeof(range)))
 		return -EFAULT;
 
+#if HAVE_DISCARD_GRANULARITY
 	range.minlen = max_t(u64, range.minlen, q->limits.discard_granularity);
+#else
+	range.minlen = max_t(u64, range.minlen, nilfs->ns_blocksize);
+#endif
 
 	down_read(&nilfs->ns_segctor_sem);
 	ret = nilfs_sufile_trim_fs(nilfs->ns_sufile, &range);

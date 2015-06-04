@@ -24,6 +24,7 @@
 #  define	HAVE_BH_ORDERED		0
 #  define	HAVE_BIO_BARRIER	0
 #  define	HAVE_FITRIM_IOCTL	1
+#  define	HAVE_DISCARD_GRANULARITY	1
 #  define	HAVE_BLOCK_PAGE_MKWRITE_RETURN	1
 # endif
 # if (RHEL_MINOR > 3)
@@ -105,6 +106,15 @@
 #ifndef HAVE_INODE_INIT_OWNER
 # define HAVE_INODE_INIT_OWNER \
 	(LINUX_VERSION_CODE > KERNEL_VERSION(2, 6, 34))
+#endif
+
+/*
+ * The queue_limits struct in linux-2.6.33 and later kernels has
+ * discard_granularity parameter.
+ */
+#ifndef HAVE_DISCARD_GRANULARITY
+# define HAVE_DISCARD_GRANULARITY \
+	(LINUX_VERSION_CODE > KERNEL_VERSION(2, 6, 32))
 #endif
 #endif /* LINUX_VERSION_CODE */
 
