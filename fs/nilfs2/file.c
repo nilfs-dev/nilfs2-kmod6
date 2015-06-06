@@ -28,7 +28,11 @@
 #include "nilfs.h"
 #include "segment.h"
 
-int nilfs_sync_file(struct file *file, struct dentry *dentry, int datasync)
+int nilfs_sync_file(struct file *file,
+#if HAVE_DENTRY_ARG_IN_FSYNC
+		    struct dentry *dentry,
+#endif
+		    int datasync)
 {
 	/*
 	 * Called from fsync() system call
@@ -39,7 +43,7 @@ int nilfs_sync_file(struct file *file, struct dentry *dentry, int datasync)
 	 * will be implemented.
 	 */
 	struct the_nilfs *nilfs;
-	struct inode *inode = dentry->d_inode;
+	struct inode *inode = file->f_mapping->host;
 	int err = 0;
 
 	if (nilfs_inode_dirty(inode)) {

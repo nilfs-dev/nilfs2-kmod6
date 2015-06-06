@@ -110,6 +110,13 @@
 	 LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 37))
 #endif
 /*
+ * dentry argument was removed from fop->fsync() in kernel 2.6.35.
+ */
+#ifndef HAVE_DENTRY_ARG_IN_FSYNC
+# define HAVE_DENTRY_ARG_IN_FSYNC \
+	(LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 35))
+#endif
+/*
  * linux-2.6.35 and the later kernels have inode_init_owner().
  */
 #ifndef HAVE_INODE_INIT_OWNER
@@ -340,8 +347,6 @@ compat_blkdev_issue_discard(struct block_device *bdev, sector_t sector,
  * The following patches are left unapplied during backporting later
  * patches:
  *
- * commit 7ea8085910ef3dd4f3cad6845aaa2b580d39b115
- *   "drop unused dentry argument to ->fsync"
  * commit 7b6d91daee5cac6402186ff224c3af39d79f4a0e
  *   "block: unify flags for struct bio and struct request"
  * commit eafdc7d190a944c755a9fe68573c193e6e0217e7

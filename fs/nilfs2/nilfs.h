@@ -29,6 +29,7 @@
 #include <linux/spinlock.h>
 #include <linux/blkdev.h>
 #include <linux/nilfs2_fs.h>
+#include "kern_feature.h"
 #include "the_nilfs.h"
 #include "bmap.h"
 
@@ -248,7 +249,11 @@ extern void nilfs_set_link(struct inode *, struct nilfs_dir_entry *,
 			   struct page *, struct inode *);
 
 /* file.c */
+#if HAVE_DENTRY_ARG_IN_FSYNC
 extern int nilfs_sync_file(struct file *, struct dentry *, int);
+#else
+extern int nilfs_sync_file(struct file *, int);
+#endif
 
 /* ioctl.c */
 long nilfs_ioctl(struct file *, unsigned int, unsigned long);
