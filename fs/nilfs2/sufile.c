@@ -1102,16 +1102,9 @@ int nilfs_sufile_trim_fs(struct inode *sufile, struct fstrim_range *range)
 			if (nblocks >= minlen) {
 				kunmap_atomic(kaddr, KM_USER0);
 
-				ret = blkdev_issue_discard(nilfs->ns_bdev,
-						start * sects_per_block,
-						nblocks * sects_per_block,
-						GFP_NOFS,
-#if HAVE_BIO_BARRIER
-						DISCARD_FL_BARRIER
-#else
-						0
-#endif
-					);
+				ret = compat_blkdev_issue_discard(
+					nilfs->ns_bdev, start * sects_per_block,
+					nblocks * sects_per_block, GFP_NOFS, 0);
 				if (ret < 0) {
 					put_bh(su_bh);
 					goto out_sem;
@@ -1142,15 +1135,9 @@ int nilfs_sufile_trim_fs(struct inode *sufile, struct fstrim_range *range)
 			nblocks = end_block - start + 1;
 
 		if (nblocks >= minlen) {
-			ret = blkdev_issue_discard(nilfs->ns_bdev,
-					start * sects_per_block,
-					nblocks * sects_per_block,
-#if HAVE_BIO_BARRIER
-					GFP_NOFS, DISCARD_FL_BARRIER
-#else
-					GFP_NOFS, 0
-#endif
-				);
+			ret = compat_blkdev_issue_discard(
+				nilfs->ns_bdev, start * sects_per_block,
+				nblocks * sects_per_block, GFP_NOFS, 0);
 			if (!ret)
 				ndiscarded += nblocks;
 		}

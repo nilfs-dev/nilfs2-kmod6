@@ -101,13 +101,39 @@
 	(LINUX_VERSION_CODE > KERNEL_VERSION(2, 6, 35))
 #endif
 /*
+ * BLKDEV_IFL_SECURE flag was introduced in kernel 2.6.36 and replaced
+ * with BLKDEV_DISCARD_SECURE in kernel 2.6.37.
+ */
+#ifndef HAVE_BLKDEV_IFL_SECURE
+# define HAVE_BLKDEV_IFL_SECURE \
+	(LINUX_VERSION_CODE > KERNEL_VERSION(2, 6, 35) && \
+	 LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 37))
+#endif
+/*
  * linux-2.6.35 and the later kernels have inode_init_owner().
  */
 #ifndef HAVE_INODE_INIT_OWNER
 # define HAVE_INODE_INIT_OWNER \
 	(LINUX_VERSION_CODE > KERNEL_VERSION(2, 6, 34))
 #endif
-
+/*
+ * blkdev_issue_flush() function has a gfp flag argument since
+ * kernel 2.6.35.
+ */
+#ifndef HAVE_GFP_ARG_IN_BLKDEV_ISSUE_FLUSH
+# define HAVE_GFP_ARG_IN_BLKDEV_ISSUE_FLUSH \
+	(LINUX_VERSION_CODE > KERNEL_VERSION(2, 6, 34))
+#endif
+/*
+ * Both BLKDEV_IFL_WAIT flag and BLKDEV_IFL_BARRIER flag were
+ * introduced in kernel 2.6.35 and removed in kernel 2.6.37.
+ */
+#ifndef HAVE_BLKDEV_IFL_WAIT
+# define HAVE_BLKDEV_IFL_WAIT \
+	(LINUX_VERSION_CODE > KERNEL_VERSION(2, 6, 34) && \
+	 LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 37))
+# define HAVE_BLKDEV_IFL_BARRIER HAVE_BLKDEV_IFL_WAIT
+#endif
 /*
  * The queue_limits struct in linux-2.6.33 and later kernels has
  * discard_granularity parameter.
@@ -116,12 +142,31 @@
 # define HAVE_DISCARD_GRANULARITY \
 	(LINUX_VERSION_CODE > KERNEL_VERSION(2, 6, 32))
 #endif
+/*
+ * DISCARD_FL_BARRIER flag was introduced in kernel 2.6.32 and
+ * replaced with two flags BLKDEV_IFL_BARRIER and BLKDEV_IFL_WAIT in
+ * kernel 2.6.35.
+ */
+#ifndef HAVE_DISCARD_FL_BARRIER
+# define HAVE_DISCARD_FL_BARRIER \
+	(LINUX_VERSION_CODE > KERNEL_VERSION(2, 6, 31) && \
+	 LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 35))
+#endif
+/*
+ * blkdev_issue_discard() function has a flag argument since
+ * 2.6.32.
+ */
+#ifndef HAVE_FLAG_ARG_IN_BLKDEV_ISSUE_DISCARD
+# define HAVE_FLAG_ARG_IN_BLKDEV_ISSUE_DISCARD \
+	(LINUX_VERSION_CODE > KERNEL_VERSION(2, 6, 31))
+#endif
 #endif /* LINUX_VERSION_CODE */
 
 
 #include <linux/sched.h>	/* current_fsuid() and current_fsgid() */
 #include <linux/fs.h>
 #include <linux/buffer_head.h>
+#include <linux/blkdev.h>
 
 /*
  * definitions dependent to above macros
@@ -251,12 +296,50 @@ struct fstrim_range {
 #define FITRIM		_IOWR('X', 121, struct fstrim_range)	/* Trim */
 #endif
 
+static inline int compat_blkdev_issue_flush(struct block_device *bdev,
+					    gfp_t gfp, sector_t *error_sector)
+{
+#if HAVE_GFP_ARG_IN_BLKDEV_ISSUE_FLUSH
+# if HAVE_BLKDEV_IFL_WAIT
+	return blkdev_issue_flush(bdev, gfp, error_sector, BLKDEV_IFL_WAIT);
+# else
+	return blkdev_issue_flush(bdev, gfp, error_sector);
+# endif
+#else
+	return blkdev_issue_flush(bdev, error_sector);
+#endif
+}
+
+static inline int
+compat_blkdev_issue_discard(struct block_device *bdev, sector_t sector,
+			    sector_t nr_sects, gfp_t gfp, unsigned long flags)
+{
+#if HAVE_FLAG_ARG_IN_BLKDEV_ISSUE_DISCARD
+# if HAVE_DISCARD_FL_BARRIER
+#  if HAVE_BIO_BARRIER
+	int compat_flags = DISCARD_FL_BARRIER;
+#  else
+	int compat_flags = 0;
+#  endif
+# elif HAVE_BLKDEV_IFL_BARRIER
+	unsigned long compat_flags = BLKDEV_IFL_BARRIER | BLKDEV_IFL_WAIT;
+#  if HAVE_BLKDEV_IFL_SECURE
+	if (flags & 0x01) /* BLKDEV_DISCARD_SECURE */
+		compat_flags |= BLKDEV_IFL_SECURE;
+#  endif
+# else /* neither HAVE_DISCARD_FL_BARRIER nor HAVE_BLKDEV_IFL_BARRIER */
+	unsigned long compat_flags = flags;
+# endif
+	return blkdev_issue_discard(bdev, sector, nr_sects, gfp, compat_flags);
+#else /* HAVE_FLAG_ARG_IN_BLKDEV_ISSUE_DISCARD */
+	return blkdev_issue_discard(bdev, sector, nr_sects, gfp);
+#endif /* HAVE_FLAG_ARG_IN_BLKDEV_ISSUE_DISCARD */
+}
+
 /*
  * The following patches are left unapplied during backporting later
  * patches:
  *
- * commit 6a47dc1418682c83d603b491df1d048f73aa973e
- *   "nilfs: fix breakage caused by barrier flag changes"
  * commit 7ea8085910ef3dd4f3cad6845aaa2b580d39b115
  *   "drop unused dentry argument to ->fsync"
  * commit 7b6d91daee5cac6402186ff224c3af39d79f4a0e
@@ -277,12 +360,6 @@ struct fstrim_range {
  *   "convert nilfs2 to ->evict_inode()"
  * commit 87e99511ea54510ffb60b98001d108794d5037f8
  *   "kill BH_Ordered flag"
- * commit 1cb0c924fa2d616e5e3b5bc62d97191aac9ff442
- *   "nilfs2: wait for discard to finish"
- * commit f8c131f5b6ffc899a70b30e541f367d47f89691c
- *   "nilfs2: replace barriers with explicit flush / FUA usage"
- * commit dd3932eddf428571762596e17b65f5dc92ca361b
- *   "block: remove BLKDEV_IFL_WAIT"
  * commit 7de9c6ee3ecffd99e1628e81a5ea5468f7581a1f
  *   "new helper: ihold()"
  * commit f629d1c9bd0dbc44a6c4f9a4a67d1646c42bfc6f

@@ -675,31 +675,18 @@ int nilfs_discard_segments(struct the_nilfs *nilfs, __u64 *segnump,
 		} else if (start + nblocks == seg_start) {
 			nblocks += seg_end - seg_start + 1;
 		} else {
-			ret = blkdev_issue_discard(nilfs->ns_bdev,
-						   start * sects_per_block,
-						   nblocks * sects_per_block,
-						   GFP_NOFS,
-#if HAVE_BIO_BARRIER
-						   DISCARD_FL_BARRIER
-#else
-						   0
-#endif
-				);
+			ret = compat_blkdev_issue_discard(
+				nilfs->ns_bdev, start * sects_per_block,
+				nblocks * sects_per_block, GFP_NOFS, 0);
 			if (ret < 0)
 				return ret;
 			nblocks = 0;
 		}
 	}
 	if (nblocks)
-		ret = blkdev_issue_discard(nilfs->ns_bdev,
-					   start * sects_per_block,
-					   nblocks * sects_per_block,
-#if HAVE_BIO_BARRIER
-					   GFP_NOFS, DISCARD_FL_BARRIER
-#else
-					   GFP_NOFS, 0
-#endif
-			);
+		ret = compat_blkdev_issue_discard(
+			nilfs->ns_bdev, start * sects_per_block,
+			nblocks * sects_per_block, GFP_NOFS, 0);
 	return ret;
 }
 
