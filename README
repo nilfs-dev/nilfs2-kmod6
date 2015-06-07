@@ -13,7 +13,7 @@ administration tools, are included in the package.
 
 - CentOS 6
 - Scientific Linux 6
-- Vanilla kernel (2.6.32.y)
+- Vanilla kernel (2.6.32.y ~ 2.6.35.y)
 
 Note that the current version of NILFS2 does not work with
 SELinux-enabled systems because extended attributes are not supported
