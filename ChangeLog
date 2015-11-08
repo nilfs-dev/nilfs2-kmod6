@@ -1,3 +1,23 @@
+nilfs2-kmod6-1.1.0  Sun Nov 8, 2015 JST
+
+	* resolve decline of the available disk space due to bloat of DAT
+	  metadata file
+	  - add mimic of rounddown() macro for old kernels
+	  - add helper functions to delete blocks from dat file
+	  - free unused dat file blocks during garbage collection
+	* refactor bitmap based object allocator/deallocator
+	  - use nilfs_warning() in allocator implementation
+	  - do not call nilfs_mdt_bgl_lock() needlessly
+	  - refactor nilfs_palloc_find_available_slot()
+	  - get rid of nilfs_palloc_group_is_in()
+	* fix sanity check of btree level in nilfs_btree_root_broken()
+	* support NFSv2 export
+	* fix build on kernel 2.6.32 due to lack of discard_granularity
+	* support vanilla kernel 2.6.33 ~ 2.6.35
+	  - fix build error due to changes of blkdev_issue_{flush,discard}
+	  - fix build warnings due to change of fsync()
+	  - README: include vanilla kernel 2.6.{33,34,35} to supported versions
+
 nilfs2-kmod6-1.0.0  Sun Apr 19, 2015 JST
 
 	* fix potential memory overrun on inode
