@@ -26,6 +26,7 @@
 #  define	HAVE_FITRIM_IOCTL	1
 #  define	HAVE_DISCARD_GRANULARITY	1
 #  define	HAVE_BLOCK_PAGE_MKWRITE_RETURN	1
+#  define	HAVE_ROUNDDOWN		1
 # endif
 # if (RHEL_MINOR > 3)
 #  define	HAVE_NEW_SB_FREEZE	1
@@ -50,6 +51,13 @@
  * defaults dependent to kernel versions
  */
 #ifdef LINUX_VERSION_CODE
+/*
+ * linux-2.6.37 and later kernels have rounddown macro.
+ */
+#ifndef HAVE_ROUNDDOWN
+# define HAVE_ROUNDDOWN \
+	(LINUX_VERSION_CODE > KERNEL_VERSION(2, 6, 36))
+#endif
 /*
  * linux-2.6.37 and later kernels have FITRIM ioctl.
  */
@@ -301,6 +309,15 @@ struct fstrim_range {
 	__u64 minlen;
 };
 #define FITRIM		_IOWR('X', 121, struct fstrim_range)	/* Trim */
+#endif
+
+#if !HAVE_ROUNDDOWN
+#define rounddown(x, y) (				\
+{							\
+	typeof(x) __x = (x);				\
+	__x - (__x % (y));				\
+}							\
+)
 #endif
 
 static inline int compat_blkdev_issue_flush(struct block_device *bdev,
