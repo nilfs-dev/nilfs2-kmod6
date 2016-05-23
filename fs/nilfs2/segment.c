@@ -1871,7 +1871,7 @@ static int nilfs_segctor_collect_dirty_files(struct nilfs_sc_info *sci,
 				ifile, ii->vfs_inode.i_ino, &ibh);
 			if (unlikely(err)) {
 				nilfs_warning(sci->sc_super, __func__,
-					      "failed to get inode block.\n");
+					      "failed to get inode block.");
 				return err;
 			}
 			mark_buffer_dirty(ibh);
@@ -2636,7 +2636,7 @@ static void nilfs_segctor_destroy(struct nilfs_sc_info *sci)
 
 	if (!list_empty(&sci->sc_dirty_files)) {
 		nilfs_warning(sci->sc_super, __func__,
-			      "dirty file(s) after the final construction\n");
+			      "dirty file(s) after the final construction");
 		nilfs_dispose_list(nilfs, &sci->sc_dirty_files, 1);
 	}
 
@@ -2713,7 +2713,7 @@ void nilfs_detach_log_writer(struct super_block *sb)
 	if (!list_empty(&nilfs->ns_dirty_files)) {
 		list_splice_init(&nilfs->ns_dirty_files, &garbage_list);
 		nilfs_warning(sb, __func__,
-			      "Hit dirty file after stopped log writer\n");
+			      "Hit dirty file after stopped log writer");
 	}
 	spin_unlock(&nilfs->ns_inode_lock);
 	up_write(&nilfs->ns_segctor_sem);
