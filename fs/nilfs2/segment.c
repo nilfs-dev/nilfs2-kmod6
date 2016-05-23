@@ -2310,6 +2310,7 @@ static int nilfs_segctor_construct(struct nilfs_sc_info *sci, int mode)
 static void nilfs_construction_timeout(unsigned long data)
 {
 	struct task_struct *p = (struct task_struct *)data;
+
 	wake_up_process(p);
 }
 

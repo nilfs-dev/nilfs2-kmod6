@@ -81,6 +81,7 @@ static int nilfs_prepare_chunk_uninterruptible(struct page *page,
 					       unsigned from, unsigned to)
 {
 	loff_t pos = page_offset(page) + from;
+
 	return block_write_begin(NULL, mapping, pos, to - from,
 				 AOP_FLAG_UNINTERRUPTIBLE, &page,
 				 NULL, nilfs_get_block);
@@ -91,6 +92,7 @@ static int nilfs_prepare_chunk(struct page *page,
 			       unsigned from, unsigned to)
 {
 	loff_t pos = page_offset(page) + from;
+
 	return block_write_begin(NULL, mapping, pos, to - from, 0, &page,
 				 NULL, nilfs_get_block);
 }
@@ -366,6 +368,7 @@ nilfs_find_entry(struct inode *dir, const struct qstr *qstr,
 	n = start;
 	do {
 		char *kaddr;
+
 		page = nilfs_get_page(dir, n);
 		if (!IS_ERR(page)) {
 			kaddr = page_address(page);
